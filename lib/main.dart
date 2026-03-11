@@ -4,14 +4,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:just_task_it/app/helpers/constants/app_theme.dart';
+import 'package:just_task_it/app/data/services/hive_service.dart';
+import 'package:just_task_it/app/data/services/connectivity_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/routes/app_pages.dart';
-
 import 'app/modules/theme/theme_controller.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // ← moved to top, must be first
+  WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
     url: 'https://nqtfmslfmecxwjabvyqk.supabase.co',
@@ -19,6 +20,12 @@ void main() async {
   );
 
   await GetStorage.init();
+
+  // ── New: initialize Hive boxes ─────────────────────────
+  await HiveService.init();
+
+  // ── New: start connectivity listener + process leftover queue ──
+  await ConnectivityService.init();
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -33,7 +40,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeController = Get.put(ThemeController()); // ← register globally
+    final themeController = Get.put(ThemeController());
 
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1)),
@@ -47,9 +54,9 @@ class MyApp extends StatelessWidget {
             child: GetMaterialApp(
               title: 'Just Task It',
               debugShowCheckedModeBanner: false,
-              theme: AppTheme.lightTheme,          // ← add light theme
-              darkTheme: AppTheme.darkTheme,        // ← add dark theme
-              themeMode: themeController.themeMode, // ← use saved preference
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeController.themeMode,
               initialRoute: AppPages.INITIAL,
               getPages: AppPages.routes,
             ),
