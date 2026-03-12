@@ -12,7 +12,7 @@ A Flutter task management app with full offline-first support: local caching, of
 - Internet connection for first launch (to authenticate)
 
 ### Steps
-1. git clone <your-repo-url>
+1. git clone https://github.com/KrishnaV08/Just-Task-It-Ailoitte-
 2. cd just_task_it
 3. flutter pub get
 4. flutter run
@@ -78,7 +78,7 @@ the most recent timestamp is the one that persists.
 
 Why last-write-wins: This is a single-user task app. There is no collaborative
 editing scenario, so the simplest strategy that prevents data loss is the correct
-one. A merge strategy would add significant complexity with no real benefit here.
+one. A merge strategy felt like overkill for a single-user app.
 
 ### Retry with Backoff
 - Maximum 2 retries per action
@@ -185,9 +185,7 @@ All screenshots are in the /verification folder.
 
 ### Prompt 1
 Prompt:
-I have a Flutter task management app with GetX and Supabase. I need to add
-offline-first support with a sync queue, retries, and idempotency. What files
-do I need to create and modify?
+I have a Flutter + GetX + Supabase task app. How do I add offline-first support? What files to create/modify?
 
 Key response summary:
 Suggested creating HiveService, SyncQueueService, ConnectivityService and
@@ -197,16 +195,14 @@ Recommended Hive for persistence and connectivity_plus for network detection.
 Decision: Accepted with modification
 
 Why:
-Accepted the overall architecture. Rejected Hive generated type adapters via
-build_runner and used plain Maps instead to eliminate code generation overhead.
+Accepted the overall architecture. Rejected Hive generated type adapters via build_runner and used plain Maps instead to eliminate code generation overhead.
+
 
 ---
 
 ### Prompt 2
 Prompt:
-Write the SyncQueueService with idempotency key generation, enqueue methods
-for add, toggle, edit and delete, processQueue with retry and backoff, and
-observability logs.
+Write me the SyncQueueService. Needs idempotency keys, enqueue for add/toggle/edit/delete, retry with backoff, and logs.
 
 Key response summary:
 Generated full service with deterministic key userId_actionType_taskId, upsert
@@ -223,9 +219,7 @@ was correct for replay safety. Retry logic was minimal and clearly explainable.
 
 ### Prompt 3
 Prompt:
-Modify DashboardController to load from Hive cache first then refresh from
-Supabase in background. Remove the tempTask pattern since TaskService now
-returns a real UUID task directly.
+Now modify my DashboardController — load from Hive first, then background refresh. Also remove the tempTask thing since service returns real task now.
 
 Key response summary:
 Replaced tempTask pattern with direct service return, added _loadFromCache as
@@ -242,9 +236,7 @@ interval from 5s to 3s for more responsive feedback during demo.
 
 ### Prompt 4
 Prompt:
-Write ConnectivityService to check connectivity on app start, process leftover
-queue on startup if online, and trigger processQueue whenever device comes back
-online.
+Write the ConnectivityService — check on startup, process leftover queue if online, and auto-trigger sync when device comes back online.
 
 Key response summary:
 Used connectivity_plus stream listener, checked initial state on init, called
