@@ -1,9 +1,10 @@
-
 import 'package:hive_flutter/hive_flutter.dart';
 
 class HiveService {
   static const String tasksBox = 'tasks_box';
   static const String syncQueueBox = 'sync_queue_box';
+  static const String cacheTimestampKey = '__cached_at__';
+  static const int cacheTTLHours = 24;
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -23,12 +24,37 @@ class HiveService {
       for (var t in tasks) t['id'] as String: t
     };
     await box.putAll(entries);
-    debugLog('[Hive] Saved ${tasks.length} tasks locally.');
+    // Save timestamp for TTL check
+    await box.put(cacheTimestampKey, {
+      'cached_at': DateTime.now().toIso8601String(),
+    });
+    debugLog('[Hive] Saved ${tasks.length} tasks locally at ${DateTime.now()}');
   }
 
   static List<Map<String, dynamic>> getTasks() {
     final box = Hive.box<Map>(tasksBox);
+
+    // TTL check — if cache is older than 24 hours, treat as expired
+    final meta = box.get(cacheTimestampKey);
+    if (meta != null) {
+      final cachedAt = DateTime.tryParse(
+        Map<String, dynamic>.from(meta)['cached_at'] ?? '',
+      );
+      if (cachedAt != null) {
+        final age = DateTime.now().difference(cachedAt);
+        if (age.inHours >= cacheTTLHours) {
+          debugLog('[Hive] Cache expired (${age.inHours}h old). Forcing fresh fetch.');
+          return []; // empty list forces TaskService to fetch from Supabase
+        }
+        debugLog('[Hive] Cache is fresh (${age.inMinutes}m old).');
+      }
+    }
+
     return box.values
+        .where((e) {
+          final map = Map<String, dynamic>.from(e);
+          return map['id'] != cacheTimestampKey;
+        })
         .map((e) => Map<String, dynamic>.from(e))
         .toList();
   }

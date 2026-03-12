@@ -179,6 +179,40 @@ All screenshots are in the /verification folder.
     Queue size: 0
 - Screenshot: verification/test4_restart_durability.png
 
+
+### Bonus — Unit Tests
+- 4 tests covering idempotency key generation
+
+- Same inputs always produce the same key
+
+- Different actionTypes produce different keys
+
+- Different taskIds produce different keys
+
+- Key format matches userId_actionType_taskId
+
+- Run: flutter test test/sync_queue_test.dart
+
+- All 4 tests passed
+
+- Screenshot: verification/test5_unit_test.png
+
+### Bonus — TTL for Cached Reads
+- Implemented 24-hour TTL in HiveService
+
+- Every time tasks are saved to Hive, a cached_at timestamp is stored
+
+- On next app open, if cache is older than 24 hours, getTasks returns empty list
+
+- This forces TaskService to fetch fresh data from Supabase automatically
+
+- Fresh cache age is logged: [Hive] Cache is fresh (Xm old)
+
+- Expired cache is logged: [Hive] Cache expired (Xh old). Forcing fresh fetch.
+
+
+
+
 ---
 
 ## AI Prompt Log
